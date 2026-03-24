@@ -92,9 +92,10 @@ aa_mol_weights={'A':89.09,'C':121.15,'D':133.1,'E':147.13,'F':165.19,
 class Seq:
 
     def __init__(self,sequence,gene,species):
-        self.sequence=sequence
-        self.gene=gene
-        self.species=species
+        self.sequence = sequence.strip().upper()
+        self.gene = gene
+        self.species = species
+        self.kmers = []
 
     def __str__(self):
         return self.sequence
@@ -102,9 +103,13 @@ class Seq:
     def print_record(self):
         print(self.species + " " + self.gene + ": " + self.sequence)
 
-    #def make_kmers(self, k=3):
+    def make_kmers(self, k=3):
+        self.kmers=[]
+        for i in range(0, len(self.sequence-3)):
+            self.kmers.append(self.sequence[i:i+3])
 
-    #def fasta(self):
+    def fasta(self):
+        return ">" + self.species + self.gene + "\n" + self.sequence
     
 class DNA(Seq):
 
