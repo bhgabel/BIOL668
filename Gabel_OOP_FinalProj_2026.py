@@ -159,24 +159,35 @@ class DNA(Seq):
         return frames
 
 
-"""
+
 class RNA(DNA):
 
-    #def __init__(self):
+    def __init__(self,sequence,gene,species,geneid,**kwargs):
+        super().__init__(sequence, gene, species, geneid)
+        self.sequence = re.sub('T', 'U', sequence)
+        self.codons = []
         
-    #def make_codons(self):
+    def make_codons(self):
+        for i in range(0, len(self.sequence), 3):
+            codon = self.sequence[i:i+3]
+            if len(codon) < 3: pass
+            else:
+                self.codons.append(codon)
  
-    #def translate(self):
+    def translate(self):
+        protein = ""
+        for codon in self.codons:
+            protein += standard_code[codon]
+        return protein
 
 class Protein(Seq):
 
-    #def __init__:
+    def __init__:
 
-    #def total_hydro(self):
+    def total_hydro(self):
 
-    #def mol_weight(self):
+    def mol_weight(self):
 
-"""
     
 
 x=DNA("G","tmp","m",000)
