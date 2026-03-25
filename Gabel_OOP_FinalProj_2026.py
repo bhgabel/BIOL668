@@ -111,6 +111,38 @@ class Seq:
     def fasta(self):
         return ">" + self.species + " " + self.gene + "\n" + self.sequence
     
+    #Count occurances of provided motif
+    #@param motif [optional]: pattern to find in sequence
+    #   if not provided, will use self.kmers list
+    def kmerCount(self, motif=""):
+        if motif == "":
+            #check that self.kemers is non-empty
+            if len(self.kmers) == 0:
+                return 0
+            
+            counts = {kmer: 0 for kmer in self.kmers}
+            for kmer in counts.keys():
+                count = 0
+                for i in range(0, len(self.sequence)):
+                    if kmer == self.sequence[i:i+len(kmer)]:
+                        count += 1
+            return counts
+
+        else:
+            motif = motif.strip().upper()
+            count = 0
+            for i in range(0, len(self.sequence)):
+                if motif == self.sequence[i:i+len(motif)]:
+                    count += 1
+            return count
+
+    #Override equal and not equal operators
+    def __eq__(self, other):
+        return self.sequence == other.sequence
+
+    def __ne__(self, other):
+        return not self == other
+    
 class DNA(Seq):
 
     def __init__(self, sequence, gene, species, geneid, **kwargs):
