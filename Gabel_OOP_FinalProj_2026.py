@@ -105,17 +105,17 @@ class Seq:
 
     def make_kmers(self, k=3):
         self.kmers=[]
-        for i in range(0, len(self.sequence)-3):
-            self.kmers.append(self.sequence[i:i+3])
+        for i in range(0, len(self.sequence)-k+1):
+            self.kmers.append(self.sequence[i:i+k])
 
     def fasta(self):
-        return ">" + self.species + self.gene + "\n" + self.sequence
+        return ">" + self.species + " " + self.gene + "\n" + self.sequence
     
 class DNA(Seq):
 
     def __init__(self, sequence, gene, species, geneid, **kwargs):
-        super().__init__(sequence,gene,species)
-        self.sequence = re.sub('[^ATGCU]','N',sequence)
+        super().__init__(sequence, gene, species)
+        self.sequence = re.sub('[^ATGCU]','N', self.sequence)
         self.geneid = geneid
  
     def analysis(self):
@@ -123,7 +123,7 @@ class DNA(Seq):
         return gc
 
     def print_info(self):
-        print(self.species + " " + self.gene + self.geneid + ": " + self.sequence)
+        print(self.species + " " + self.gene + " " + self.geneid + ": " + self.sequence)
 
     def reverse_complement(self):
         reverse = self.sequence[::-1]
@@ -143,18 +143,17 @@ class DNA(Seq):
 
     #returns 6 lists, indexes 0,1,2 are forward; 3,4,5 are reverse
     def six_frames(self):
-        frames = [[] for i in range(6)]
+        frames = []
 
         #forward
-        frames[0] = [self.sequence[i:i+3] for i in range(0, len(self.sequence, 3))]
-        frames[1] = [self.sequence[i:i+3] for i in range(1, len(self.sequence, 3))]
-        frames[2] = [self.sequence[i:i+3] for i in range(2, len(self.sequence, 3))]
+        frames.append(self.sequence[0:])
+        frames.append(self.sequence[1:])
+        frames.append(self.sequence[2:])
 
-        #reverse
         reverse = self.reverse_complement()
-        frames[3] = [reverse[i:i+3] for i in range(0, len(reverse, 3))]
-        frames[4] = [reverse[i:i+3] for i in range(1, len(reverse, 3))]
-        frames[5] = [reverse[i:i+3] for i in range(2, len(reverse, 3))]
+        frames.append(reverse[0:])
+        frames.append(reverse[1:])
+        frames.append(reverse[2:])
 
         return frames
 
@@ -164,10 +163,11 @@ class RNA(DNA):
 
     def __init__(self, sequence, gene, species, geneid, **kwargs):
         super().__init__(sequence, gene, species, geneid)
-        self.sequence = re.sub('T', 'U', sequence)
+        self.sequence = re.sub('T', 'U', self.sequence)
         self.codons = []
         
     def make_codons(self):
+        self.codons = []
         for i in range(0, len(self.sequence), 3):
             codon = self.sequence[i:i+3]
             if len(codon) < 3: pass
@@ -177,7 +177,7 @@ class RNA(DNA):
     def translate(self):
         protein = ""
         for codon in self.codons:
-            protein += standard_code[codon]
+            protein += standard_code.get(codon, 'X')
         return protein
 
 class Protein(Seq):
@@ -197,12 +197,4 @@ class Protein(Seq):
         for aa in self.sequence:
             weight += aa_mol_weights[aa]
         return weight
-
-    
-
-x=DNA("G","tmp","m",000)
-
-
-
-
 
