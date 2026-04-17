@@ -190,6 +190,25 @@ class Seq:
     
     # FL: Override len to return length of the sequence not the class
     def __len__(self):
+        '''len() is overridden to return length of the sequence within Seq instance.
+        Also works for derived classes.
+
+        >>> my_seq = Seq("aTCaAT-CaGaxCGnAGcazGAC", "RecA", "B. subtilis")
+        >>> print(len(my_seq))
+        23
+
+        >>> my_DNA = DNA("aTCaAT-CaGaxCGnAGcazGAC", "RecA", "B. subtilis", "Recombinase67")
+        >>> print(len(my_DNA))
+        23
+
+        >>> my_RNA = RNA("aTCaAT-CaGaxCGnAGcazGAC", "RecA", "B. subtilis", "Recombinase67")
+        >>> print(len(my_RNA))
+        23
+
+        >>> my_prot = Protein("CANDY", "SugR", "A. gloop")
+        >>> print(len(my_prot))
+        5
+        '''
         return len(self.sequence)
     
 class DNA(Seq):
@@ -289,21 +308,39 @@ class Protein(Seq):
         self.sequence = re.sub('[^A-Z]', 'X', self.sequence)
 
     def total_hydro(self):
+        '''returns the sum of the total Kyte-Doolittle hydrophobicity of a self.sequence
+        >>> rand_prot = "IKWQHGLGCI"
+        >>> my_Protein = Protein(rand_prot, "RecA", "B. subtilis")
+        >>> print(my_Protein.total_hydro())
+        2.999999999999999
+        '''
         hydro = 0
         for aa in self.sequence:
             hydro += kyte_doolittle[aa]
         return hydro
 
     def mol_weight(self):
+        '''Returns the total molecular weight of the protein 
+        sequence assigned to the protein object. 
+        >>> rand_prot = "IKWQHGLGCI"
+        >>> my_Protein = Protein(rand_prot, "RecA", "B. subtilis")
+        >>> print(my_Protein.mol_weight())
+        1316.5300000000002
+        '''
         weight = 0
         for aa in self.sequence:
             weight += aa_mol_weights[aa]
         return weight
     
-    # FL: estimate total charge of the protein by subtracting all - charges (acid) from all + charges (base)
-    # based on amino acid charge at physiological pH
     def charge(self):
-        base = len(re.findall('[RHL]', self.sequence))
+        '''@FL: estimate total charge of the protein by subtracting all - charges (acid) from all + charges (base) 
+        based on amino acid charge at physiological pH 8
+        >>> rand_prot = "IKWQHGLGCI"
+        >>> my_Protein = Protein(rand_prot, "RecA", "B. subtilis")
+        >>> print(my_Protein.charge())
+        3
+        '''
+        base = len(re.findall('[RHKL]', self.sequence))
         acid = len(re.findall('[DE]', self.sequence))
         total_charge = base-acid
         return total_charge
