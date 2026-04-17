@@ -112,7 +112,11 @@ class Seq:
     def make_kmers(self, k=3):
         self.kmers=[]
         for i in range(0, len(self.sequence)-k+1):
-            self.kmers.append(self.sequence[i:i+k])
+            kmer = self.sequence[i:i+k]
+            if len(kmer) != k: pass
+
+            if kmer not in self.kmers:
+                self.kmers.append(kmer)
 
     def fasta(self):
         return ">" + self.species + " " + self.gene + "\n" + self.sequence
@@ -121,6 +125,25 @@ class Seq:
     #@param motif [optional]: pattern to find in sequence
     #   if not provided, will use self.kmers list
     def kmerCount(self, motif=""):
+        """Count occruances of provided motif or of object's kmers
+
+        #create Seq object
+        >>> seq = Seq("ACGTACGT", "gene", "species")
+
+        #check with empty self.kmers list
+        >>> seq.kmerCount()
+        0
+
+        >>> seq.make_kmers(k=3)
+        >>> seq.kmerCount("ACGT")
+        2
+        >>> seq.kmerCount()
+        {'ACG': 2, 'CGT': 2, 'GTA': 1, 'TAC': 1}
+
+        #check with motif not in sequence
+        >>> seq.kmerCount("XYZ")
+        0
+        """
         if motif == "":
             #check that self.kemers is non-empty
             if len(self.kmers) == 0:
@@ -143,7 +166,24 @@ class Seq:
 
     #Override equal and not equal operators
     def __eq__(self, other):
-        return self.sequence == other.sequence
+        """
+        >>> seq1 = Seq("ACGTACGT", "gene", "species")
+        >>> seq2 = Seq("ACGTACGT", "x", "y")
+        >>> seq3 = Seq("ACGT", "gene", "species")
+        >>> seq1 == seq2
+        True
+        >>> seq1 == seq3
+        False
+
+        #compare to non- Seq object -> false
+        >>> seq1 == "ACGTACGT"
+        False
+        """
+
+        if isinstance(other, Seq):
+            return self.sequence == other.sequence
+        else:
+            return False
 
     def __ne__(self, other):
         return not self == other
@@ -160,6 +200,16 @@ class DNA(Seq):
         self.geneid = geneid
  
     def analysis(self):
+        """ Returns the GC count of the DNA sequence
+
+        >>> seq = DNA("ACGTACGT", "gene", "species", "geneid")
+        >>> seq.analysis()
+        4
+        >>> DNA("GGGGCC", "gene", "species", "geneid").analysis()
+        6
+        >>> DNA("XYZ", "gene", "species", "geneid").analysis()
+        0
+        """
         gc = len(re.findall('G',self.sequence) + re.findall('C',self.sequence))
         return gc
 
@@ -167,6 +217,17 @@ class DNA(Seq):
         print(self.species + " " + self.gene + " " + self.geneid + ": " + self.sequence)
 
     def reverse_complement(self):
+        """Returns the reverse complement of the DNA sequence
+
+        >>> DNA("ACGTACGT", "gene", "species", "geneid").reverse_complement()
+        'ACGTACGT'
+
+        >>> DNA("ACGTAAA", "gene", "species", "geneid").reverse_complement()
+        'TTTACGT'
+
+        >>> DNA("ACGTXYZ", "gene", "species", "geneid").reverse_complement()
+        'NNNACGT'
+        """
         reverse = self.sequence[::-1]
         complement = ""
         for base in reverse:
@@ -223,7 +284,7 @@ class RNA(DNA):
 
 class Protein(Seq):
 
-    def __init__(self, sequence, gene, species, **kwargs):
+    def __init__(self, sequence, gene, species, *args, **kwargs,):
         super().__init__(sequence, gene, species)
         self.sequence = re.sub('[^A-Z]', 'X', self.sequence)
 
@@ -252,14 +313,7 @@ class Protein(Seq):
 
 #Testing section
 if __name__ == "__main__":
-    seq1 = Seq("ACGTACGT", "gene", "species")
-    seq2 = Seq("ACGTACGT", "x", "y")
 
-    print(seq1 == seq2)
-    print(seq1 != seq2)
+    import doctest
+    doctest.testmod()
 
-    seq1.make_kmers()
-    x = seq1.kmerCount()
-    print(x)
-
-    print(seq1.kmerCount("ACGT"))
